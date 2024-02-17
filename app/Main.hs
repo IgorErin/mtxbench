@@ -2,7 +2,7 @@ module Main (main) where
 
 import Options.Applicative
 import Reader (run)
-import QTree (toBuilder)
+import QTree (toBuilder, explicitZeros)
 import Data.Text.Lazy.IO (putStr)
 import Fmt ((+|), (|+))
 import Data.Text.Lazy (Text)
@@ -26,8 +26,12 @@ varName = "matrix"
 main :: IO ()
 main = do
     mtxFilePath <- execParser inputInfo
-    mtx <- toBuilder <$> run mtxFilePath
 
-    let result = ""+|varName|+" = "+|mtx|+""
+    -- hardcoded implicite zeros elimination. rerork
+    qtMtx <- explicitZeros 0 <$> run mtxFilePath
+    let qtText = toBuilder qtMtx
+
+    -- hardcoded binding. rework
+    let result = ""+|varName|+" = "+|qtText|+""
 
     putStr result

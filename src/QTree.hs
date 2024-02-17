@@ -1,10 +1,11 @@
 {-# OPTIONS_GHC -Wno-partial-fields #-}
+{-# LANGUAGE InstanceSigs #-}
+module QTree (QTree(..), leaf, node, toBS, toBuilder, toText, mergeQTree, explicitZeros) where
 
-module QTree (QTree(..), leaf, node, toBS, toBuilder, toText, mergeQTree) where
-
-import Data.ByteString.Lazy
-import Data.Text.Lazy
-import Fmt
+import Data.ByteString.Lazy (ByteString)
+import Data.Text.Lazy (Text)
+import Fmt ((+|), (|+), (||+), (+||), Builder, fmt)
+import Data.Maybe (fromMaybe)
 
 data QTree a =
     QLeaf { value :: a }
@@ -20,7 +21,7 @@ node lt rt ll rl = QNode  { lt, rt, ll, rl }
 toBuilder :: Show a => QTree a -> Builder
 toBuilder (QLeaf {value}) = "Leaf ("+||value||+")"
 toBuilder (QNode {lt, rt, ll, rl}) =
-    "(Node ("+|toBuilder lt|+"), ("+|toBuilder rt|+"), ("+|toBuilder ll|+"), ("+|toBuilder rl|+"))"
+    "(Node ("+|toBuilder lt|+") ("+|toBuilder rt|+") ("+|toBuilder ll|+") ("+|toBuilder rl|+"))"
 
 toBS :: Show a => QTree a -> ByteString
 toBS = fmt . toBuilder
@@ -54,3 +55,15 @@ mergeQTree = run
                 in QNode {lt = lt', rt = rt', ll = ll', rl = rl' }
     run l@(QLeaf _) = l
 
+instance Functor QTree where
+    fmap :: (a -> b) -> QTree a -> QTree b
+    fmap f (QLeaf {value}) = QLeaf { value = f value }
+    fmap f (QNode {lt, rt, ll, rl}) =
+        let lt' = fmap f lt
+            rt' = fmap f rt
+            ll' = fmap f ll
+            rl' = fmap f rl
+        in QNode { lt = lt', rt = rt', ll = ll', rl = rl' }
+
+explicitZeros :: a -> QTree (Maybe a) -> QTree a
+explicitZeros zero = fmap (fromMaybe zero)
