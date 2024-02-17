@@ -1,8 +1,9 @@
 {-# OPTIONS_GHC -Wno-partial-fields #-}
 
-module QTree (QTree(..), leaf, node, toBS, mergeQTree) where
+module QTree (QTree(..), leaf, node, toBS, toBuilder, toText, mergeQTree) where
 
 import Data.ByteString.Lazy
+import Data.Text.Lazy
 import Fmt
 
 data QTree a =
@@ -16,13 +17,16 @@ leaf value = QLeaf { value }
 node :: QTree a -> QTree a -> QTree a -> QTree a -> QTree a
 node lt rt ll rl = QNode  { lt, rt, ll, rl }
 
-showm :: Show a => QTree a -> Builder
-showm (QLeaf {value}) = "Leaf ("+||value||+")"
-showm (QNode {lt, rt, ll, rl}) =
-    "(Node ("+|showm lt|+"), ("+|showm rt|+"), ("+|showm ll|+"), ("+|showm rl|+"))"
+toBuilder :: Show a => QTree a -> Builder
+toBuilder (QLeaf {value}) = "Leaf ("+||value||+")"
+toBuilder (QNode {lt, rt, ll, rl}) =
+    "(Node ("+|toBuilder lt|+"), ("+|toBuilder rt|+"), ("+|toBuilder ll|+"), ("+|toBuilder rl|+"))"
 
 toBS :: Show a => QTree a -> ByteString
-toBS = fmt . showm
+toBS = fmt . toBuilder
+
+toText :: Show a => QTree a -> Text
+toText = fmt . toBuilder
 
 data Info a = Try a | No
 

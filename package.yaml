@@ -44,6 +44,7 @@ library:
     - mtl
     - fmt
     - bytestring
+    - text
 
 executables:
   mtxbench-exe:
@@ -53,8 +54,12 @@ executables:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    - -XOverloadedStrings
     dependencies:
     - mtxbench
+    - optparse-applicative
+    - text
+    - fmt
 
 tests:
   mtxbench-test:
