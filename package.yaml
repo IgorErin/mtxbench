@@ -1,0 +1,75 @@
+name:                mtxbench
+version:             0.1.0.0
+github:              "IgorErin/mtxbench"
+license:             BSD-3-Clause
+author:              "IgorErin"
+maintainer:          "erin.igore@yandex.ru"
+copyright:           "2024 IgorErin"
+
+extra-source-files:
+- README.md
+- CHANGELOG.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/IgorErin/mtxbench#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+
+ghc-options:
+- -Wall
+- -Wcompat
+- -Widentities
+- -Wincomplete-record-updates
+- -Wincomplete-uni-patterns
+- -Wmissing-export-lists
+- -Wmissing-home-modules
+- -Wpartial-fields
+- -Wredundant-constraints
+
+library:
+  source-dirs: src
+  ghc-options:
+  - -XNamedFieldPuns
+  - -XNoFieldSelectors
+  - -XOverloadedStrings
+  dependencies:
+    - matrix-market-attoparsec
+    - mtl
+    - fmt
+    - bytestring
+
+executables:
+  mtxbench-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - mtxbench
+
+tests:
+  mtxbench-test:
+    main:                Main.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    - -XOverloadedStrings
+    dependencies:
+    - mtxbench
+    - tasty
+    - tasty-golden
+    - bytestring
+    - filepath
+    - pretty-simple
+    - text
