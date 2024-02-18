@@ -55,11 +55,14 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     - -XOverloadedStrings
+    - -XNamedFieldPuns
     dependencies:
     - mtxbench
     - optparse-applicative
     - text
     - fmt
+    - tasty-golden
+    - filepath
 
 tests:
   mtxbench-test:
