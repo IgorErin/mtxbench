@@ -1,0 +1,71 @@
+data Tree = (Node lt rt rd ld) | (Leaf val)
+
+(gen count) = match count {
+        +:
+           (let new_count = (count-1)
+            let lt = (gen new_count)
+            let rt = (gen new_count)
+            let rd = (gen new_count)
+            let ld = (gen new_count)
+
+            (Node lt rt rd ld))
+        0: (Leaf 1)
+    }
+
+(flip f fst snd) = (f snd fst)
+
+(mapWithValue f tree value) = match tree {
+        (Node lt rt rd ld) :
+            (let new_lt = (mapWithValue f lt value)
+            let new_rt = (mapWithValue f rt value )
+            let new_rd = (mapWithValue f rd value )
+            let new_ld = (mapWithValue f ld value )
+
+            (Node new_lt new_rt new_rd new_ld))
+
+        (Leaf lvalue) : (Leaf (f lvalue value))
+    }
+
+mapValueWith = @ f @ val @ tree (mapWithValue (flip f) tree val)
+
+(map f tree) = match tree {
+  (Node lt rt rd ld) : (Node (map f lt) (map f rt) (map f rd) (map f ld))
+  (Leaf v)           : (Leaf (f v))
+}
+
+(map2 f left right) = match left {
+        (Node fst_lt fst_rt fst_rd fst_ld): (match right {
+            (Node snd_lt snd_rt snd_rd snd_ld) :
+                (let lt = (map2 f fst_lt snd_lt)
+                let rt = (map2 f fst_rt snd_rt)
+                let rd = (map2 f fst_rd snd_rd)
+                let ld = (map2 f fst_ld snd_ld )
+
+                (Node lt rt rd ld))
+             (Leaf val) : (mapWithValue f left val )
+            })
+        (Leaf left_val) : (match right {
+          *: (mapValueWith f left_val right)
+          (Leaf right_val) : (Leaf (f left right))
+        })
+    }
+
+(fold f tree) = match tree {
+        (Leaf value): value
+        (Node lt rt rd ld):
+            (let lt_result = (fold f lt)
+            let rt_result = (fold f rt)
+            let rd_result = (fold f rd )
+            let ld_result = (fold f ld )
+
+            (f ld_result (f rd_result (f lt_result rt_result ))))
+    }
+
+(add left right) = (+ left right)
+
+(ignore tree) = 1
+
+main =
+    (let left = (gen 10)
+    let right = (gen 10)
+    (ignore (map2 add left right)))

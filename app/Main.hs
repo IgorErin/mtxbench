@@ -23,6 +23,8 @@ inputInfo = info inputParser
 varName :: Text
 varName = "matrix"
 
+
+
 main :: IO ()
 main = do
     mtxFilePath <- execParser inputInfo
