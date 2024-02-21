@@ -1,0 +1,9 @@
+QNode
+    { lt = QLeaf { value = Nothing }
+    , rt = QLeaf
+        { value = Just 3 }
+    , ll = QLeaf
+        { value = Just 1 }
+    , rl = QLeaf
+        { value = Just 2 }
+    }

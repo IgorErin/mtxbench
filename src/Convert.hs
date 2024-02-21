@@ -1,50 +1,65 @@
-{-# OPTIONS_GHC -Wno-partial-fields #-}
+module Convert (run) where
 
-module Convert (convert) where
-
-import Data.Matrix.MatrixMarket
+import Helpers ( takeFst, takeSnd, takeThrd, roundUp )
+import QTree as Q (QTree, leaf, node, mergeQTree)
+import Data.Matrix.MatrixMarket (Matrix(IntMatrix))
 import Data.Int
-import QTree (QTree, leaf, node, mergeQTree)
 
-convert :: Matrix a -> QTree (Maybe Int)
-convert (IntMatrix (rowCount, colCount) _ _ values) =
-    let mtx = MkIntMatrix { rowCount, colCount, entry = values }
-        tree = createTree mtx
-    in mergeQTree $ createQTree tree values
-convert _ = error "convert unsupported yet"
+data MtxSparseFormat = Mtx {values :: [(Int32, Int32, Int)], linesCount :: Int, columnCount :: Int} deriving (Show)
 
-type IntEntry = [(Int32, Int32, Int)]
-data IntMatrix = MkIntMatrix { rowCount :: Int, colCount :: Int, entry :: [(Int32, Int32, Int)] }
+run :: Matrix a -> QTree (Maybe Int)
+run (IntMatrix (rowCount, colCount) _ _ values') =
+    let mtx = Mtx { linesCount = rowCount, columnCount = colCount, values = values' }
+    in toQuadTreeFromMtxFormat mtx
+run _ = error "convert unsupported yet"
 
-data CTree =
-    Leaf { row :: Int, col :: Int }
-    | Node { lt :: CTree, rt :: CTree, ll :: CTree, rl :: CTree }
+type Entry = [(Int32, Int32, Int)]
 
-createTree :: IntMatrix -> CTree
-createTree (MkIntMatrix { rowCount = rc, colCount = cc, entry  = _ }) =
-    let run offsetRow rowCount offsetCol colCount
-            | rowCount <= 1 && colCount <= 1 = Leaf offsetRow offsetCol
-            | rowCount > 1  || colCount > 1  =
-                let rowHalf = rowCount `div` 2
-                    colHalf = colCount `div` 2
+mtxFormatPartition :: MtxSparseFormat -> (MtxSparseFormat , MtxSparseFormat, MtxSparseFormat, MtxSparseFormat)
+mtxFormatPartition mtx@(Mtx values rows columns)
+    | columns == 0 || rows == 0 = (mtx, mtx, mtx, mtx)
+    | otherwise =
+        let -- cringe formIntegral
+            halfRows = fromIntegral $ roundUp $ fromRational (toRational rows / 2)
+            halfColumns = fromIntegral $ roundUp $ fromRational (toRational columns / 2)
 
-                    lt = run offsetRow rowHalf offsetCol colHalf
-                    rt = run offsetRow rowHalf (offsetCol + colHalf) (colCount - colHalf)
-                    ll = run (offsetRow + rowHalf) (rowCount - rowHalf) offsetCol colHalf
-                    rl = run (offsetRow + rowHalf) (rowCount - rowHalf) (offsetCol + colHalf) (colCount - colHalf)
-                in Node {lt, rt, ll, rl}
-            | otherwise = error $ "dim error in tree gen row = " ++ show rowCount ++ ", column = " ++ show colCount
-    in run 0 rc 0 cc
+            inner :: Entry -> Entry -> Entry -> Entry -> Entry -> (Entry, Entry, Entry, Entry)
+            inner [] nw' ne' sw' se' = (nw', ne', sw', se')
+            inner ((i, j, value) : tl) nw' ne' sw' se'
+                | i <= halfRows && j <= halfColumns = inner tl ((i, j, value) : nw') ne' sw' se'
+                | i <= halfRows && j > halfColumns = inner tl nw' ((i, j - halfColumns, value) : ne') sw' se'
+                | i > halfRows && j <= halfColumns = inner tl nw' ne' ((i - halfRows, j, value) : sw') se'
+                | otherwise = inner tl nw' ne' sw' ((i - halfRows, j - halfRows, value) : se')
 
-createQTree :: CTree -> IntEntry -> QTree (Maybe Int)
-createQTree (Leaf {row, col}) values = leaf $ find (row, col) values
-    where find (col', row') ((col'', row'', value) : tl)
-            | col' == fromIntegral col'' && row' == fromIntegral row'' = Just value
-            | otherwise = find (col', row') tl
-          find _ [] = Nothing
-createQTree (Node {lt, rt, ll, rl}) values =
-    let lt' = createQTree lt values
-        rt' = createQTree rt values
-        ll' = createQTree ll values
-        rl' = createQTree rl values
-    in node lt' rt' ll' rl'
+            (nw, ne, sw, se) = inner values [] [] [] []
+            -- cirnge fromIntegral
+            halfRows' = fromIntegral halfRows
+            halfCols' = fromIntegral halfColumns
+
+            mnw = Mtx nw halfRows' halfCols'
+            mne = Mtx ne halfRows' halfCols'
+            msw = Mtx sw halfRows' halfCols'
+            mse = Mtx se halfRows' halfCols'
+        in
+        (mnw, mne, msw, mse)
+
+toQuadTreeFromMtxFormat ::  MtxSparseFormat -> QTree (Maybe Int)
+toQuadTreeFromMtxFormat (Mtx values rows columns)
+    | rows == 0 && columns == 0 = leaf Nothing
+    | rows == 1 && columns == 1 && not (null values) = leaf (Just $ takeThrd $ head values)
+    | otherwise = inner $ Mtx values powerSize powerSize
+    where
+        powerSize = 2 ^ roundUp (logBase 2 (toEnum $ max rows columns))
+        maxRowIndex = rows - 1
+        maxColumnIndex = columns - 1
+        inner mtx'@(Mtx values' rows' columns')
+            | rows' == 1
+                && columns' == 1
+                && length values' == 1
+                && takeFst (head values') <= fromIntegral maxRowIndex
+                && takeSnd (head values') <= fromIntegral maxColumnIndex =
+                leaf (Just $ takeThrd $ head values')
+            | null values' = leaf Nothing
+            | otherwise =  mergeQTree $ node (inner nw) (inner ne) (inner sw) (inner se)
+            where
+                (nw, ne, sw, se) = mtxFormatPartition mtx'

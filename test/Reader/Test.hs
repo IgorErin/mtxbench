@@ -10,11 +10,18 @@ import Data.Text.Lazy.Encoding as TLE (encodeUtf8)
 import Text.Pretty.Simple (pShowNoColor)
 
 import qualified Reader (run)
+import QTree (QTree)
+
+type TestFun = FilePath -> IO (QTree (Maybe Int))
 
 tests :: IO TestTree
-tests = do
+tests = testGroup "" <$> sequence
+  [ mkTest "efim" Reader.run]
+
+mkTest :: String -> TestFun -> IO TestTree
+mkTest name testFun = do
   mtx' <- mtx
-  testGroup "Reader" <$> mapM mk mtx'
+  testGroup "Reader" <$> mapM (mk name testFun) mtx'
 
 mtx :: IO [FilePath]
 mtx = findByExtension [".mtx"] $ "test" </> "Reader" </> "Golden"
@@ -22,13 +29,13 @@ mtx = findByExtension [".mtx"] $ "test" </> "Reader" </> "Golden"
 mkResultPath :: FilePath -> FilePath
 mkResultPath fp = replaceExtension fp "golden"
 
-mk :: FilePath -> IO TestTree
-mk fp = do
-  let qtree = TLE.encodeUtf8 . pShowNoColor <$> Reader.run fp
-  let resultFile = mkResultPath fp
-  let name = fp
+mk :: String -> TestFun -> FilePath -> IO TestTree
+mk name testFun fp = do
+  let qtree = TLE.encodeUtf8 . pShowNoColor <$> testFun fp
+  let resultFile = mkResultPath fp ++ name
+  let name' = name ++ fp
 
-  return $ golden name resultFile qtree
+  return $ golden name' resultFile qtree
 
 golden :: String -> FilePath -> IO BL.ByteString -> TestTree
 golden name resultPath result =

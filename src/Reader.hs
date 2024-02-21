@@ -1,10 +1,10 @@
 module Reader(run) where
 
 import Data.Matrix.MatrixMarket (readMatrix)
-import Convert (convert)
+import qualified Convert (run)
 import QTree (QTree)
 
 run :: FilePath -> IO (QTree (Maybe Int))
 run fp = do
     mtx <- readMatrix fp
-    return $ convert mtx
+    return $ Convert.run mtx
