@@ -63,6 +63,8 @@ executables:
     - fmt
     - tasty-golden
     - filepath
+    - typed-process
+    - unliftio
 
 tests:
   mtxbench-test:

@@ -48,6 +48,10 @@ library
 executable mtxbench-exe
   main-is: Main.hs
   other-modules:
+      ArgParser
+      Common
+      Hvml
+      MtxTranslate
       Paths_mtxbench
   autogen-modules:
       Paths_mtxbench
@@ -62,6 +66,8 @@ executable mtxbench-exe
     , optparse-applicative
     , tasty-golden
     , text
+    , typed-process
+    , unliftio
   default-language: Haskell2010
 
 test-suite mtxbench-test
