@@ -1,17 +1,5 @@
 data Tree = (Node lt rt rd ld) | (Leaf val)
 
-(gen count) = match count {
-        +:
-           (let new_count = (count-1)
-            let lt = (gen new_count)
-            let rt = (gen new_count)
-            let rd = (gen new_count)
-            let ld = (gen new_count)
-
-            (Node lt rt rd ld))
-        0: (Leaf 1)
-    }
-
 (flip f fst snd) = (f snd fst)
 
 (mapWithValue f tree value) = match tree {
@@ -65,7 +53,4 @@ mapValueWith = @ f @ val @ tree (mapWithValue (flip f) tree val)
 
 (ignore tree) = 1
 
-main =
-    (let left = (gen 10)
-    let right = (gen 10)
-    (ignore (map2 add left right)))
+main = (ignore (map2 add matrix matrix))
