@@ -2,7 +2,7 @@ module Hvml (run) where
 
 import qualified MtxTranslate as MT (run)
 
-import Common (mkDstPath)
+import Path (mkDstPath)
 
 import System.Process.Typed
 import System.IO (openFile, Handle, IOMode (WriteMode))

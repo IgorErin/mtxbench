@@ -1,12 +1,12 @@
 module MtxTranslate (run, processMtx) where
 
+import Path (mtxPaths)
+
 import Fmt ((+|), (|+))
 
 import qualified Data.Text.Lazy.IO as TIO (writeFile, readFile)
 import Data.Text.Lazy (Text)
 
--- only for file search
-import Test.Tasty.Golden (findByExtension)
 import System.FilePath (replaceDirectory, replaceExtension, (</>), )
 
 import qualified Reader (run)
@@ -14,9 +14,6 @@ import QTree (QTree, toText, explicitZeros)
 
 matrixName :: Text
 matrixName = "matrix"
-
-srcPaths :: IO [FilePath]
-srcPaths = findByExtension [".mtx"] "dataset"
 
 hvlLibPath :: FilePath
 hvlLibPath = "hvl" </> "lib"
@@ -50,6 +47,6 @@ processMtx dstPath src = do
 
 run :: FilePath -> IO [FilePath]
 run dst = do
-    srcPaths' <- srcPaths
+    srcPaths' <- Path.mtxPaths
 
     mapM (processMtx dst) srcPaths'

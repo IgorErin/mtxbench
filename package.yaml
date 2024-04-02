@@ -33,6 +33,15 @@ ghc-options:
 - -Wpartial-fields
 - -Wredundant-constraints
 
+benchmarks:
+  testing-bench:
+    source-dirs: bench
+    main: Main.hs
+    dependencies:
+      - criterion
+      - mtxbench
+      - filepath
+
 library:
   source-dirs: src
   ghc-options:
@@ -45,6 +54,9 @@ library:
     - fmt
     - bytestring
     - text
+    - deepseq
+    - filepath
+    - tasty-golden
 
 executables:
   mtxbench-exe:
@@ -61,7 +73,6 @@ executables:
     - optparse-applicative
     - text
     - fmt
-    - tasty-golden
     - filepath
     - typed-process
     - unliftio

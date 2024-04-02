@@ -1,16 +1,32 @@
 {-# OPTIONS_GHC -Wno-partial-fields #-}
 {-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
 module QTree (QTree(..), leaf, node, toBS, toBuilder, toText, mergeQTree, explicitZeros) where
 
 import Data.ByteString.Lazy (ByteString)
 import Data.Text.Lazy (Text)
-import Fmt ((+|), (|+), (||+), (+||), Builder, fmt)
 import Data.Maybe (fromMaybe)
+
+import Fmt ((+|), (|+), (||+), (+||), Builder, fmt)
+
+import GHC.Generics (Generic, Generic1)
+import Control.DeepSeq
 
 data QTree a =
     QLeaf { value :: a }
     | QNode { lt :: QTree a, rt :: QTree a, ll :: QTree a, rl :: QTree a }
-    deriving Show
+    deriving (Show, Generic, Generic1, NFData, NFData1)
+
+instance Functor QTree where
+    fmap :: (a -> b) -> QTree a -> QTree b
+    fmap f (QLeaf {value}) = QLeaf { value = f value }
+    fmap f (QNode {lt, rt, ll, rl}) =
+        let lt' = fmap f lt
+            rt' = fmap f rt
+            ll' = fmap f ll
+            rl' = fmap f rl
+        in QNode { lt = lt', rt = rt', ll = ll', rl = rl' }
 
 leaf :: a -> QTree a
 leaf value = QLeaf { value }
@@ -54,16 +70,6 @@ mergeQTree = run
                     rl' = run rl
                 in QNode {lt = lt', rt = rt', ll = ll', rl = rl' }
     run l@(QLeaf _) = l
-
-instance Functor QTree where
-    fmap :: (a -> b) -> QTree a -> QTree b
-    fmap f (QLeaf {value}) = QLeaf { value = f value }
-    fmap f (QNode {lt, rt, ll, rl}) =
-        let lt' = fmap f lt
-            rt' = fmap f rt
-            ll' = fmap f ll
-            rl' = fmap f rl
-        in QNode { lt = lt', rt = rt', ll = ll', rl = rl' }
 
 explicitZeros :: a -> QTree (Maybe a) -> QTree a
 explicitZeros zero = fmap (fromMaybe zero)
