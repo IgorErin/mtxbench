@@ -8,5 +8,9 @@ mkDstPath fp ext dst =
     flip replaceExtension ext $
     replaceDirectory fp dst
 
-mtxPaths :: IO [FilePath]
-mtxPaths = findByExtension [".mtx"] "dataset"
+mtxPaths :: IO [(FilePath, FilePath)]
+mtxPaths = do
+    mtx <- findByExtension [".mtx"] "dataset"
+    let mtx2 = (++ "2") <$> mtx
+
+    return $ zip mtx mtx2

@@ -12,8 +12,11 @@ import System.FilePath (replaceDirectory, replaceExtension, (</>), )
 import qualified Reader (run)
 import QTree (QTree, toText, explicitZeros)
 
-matrixName :: Text
-matrixName = "matrix"
+matrix1Name :: Text
+matrix1Name = "matrix1"
+
+matrix2Name :: Text
+matrix2Name = "matrix2"
 
 hvlLibPath :: FilePath
 hvlLibPath = "hvl" </> "lib"
@@ -32,14 +35,20 @@ mkDstPath fp dst = flip replaceExtension "t" $ replaceDirectory fp dst
 hvlCode :: IO Text
 hvlCode = TIO.readFile hvlLibPath
 
-processMtx :: FilePath -> FilePath -> IO FilePath
-processMtx dstPath src = do
-    mtx <- Reader.run src
+processMtx :: FilePath -> (FilePath, FilePath) -> IO FilePath
+processMtx dstPath (src1, src2) = do
     mainCode <- hvlCode
 
-    let mtxText = translateMtx mtx
-    let code' = prependProgram matrixName mtxText mainCode
-    let dstPath' = mkDstPath src dstPath
+    mtx1 <- Reader.run src1
+    mtx2 <- Reader.run src2
+
+    let mtx1Text = translateMtx mtx1
+    let mtx2Text = translateMtx mtx2
+
+    let code' = prependProgram matrix1Name mtx1Text
+                $ prependProgram matrix2Name mtx2Text mainCode
+
+    let dstPath' = mkDstPath src1 dstPath
 
     TIO.writeFile dstPath' code'
 
