@@ -1,13 +1,13 @@
 module MtxTranslate (run, processMtx) where
 
-import Path (mtxPaths)
+import qualified Path (mtxPaths, mains)
 
 import Fmt ((+|), (|+))
 
 import qualified Data.Text.Lazy.IO as TIO (writeFile, readFile)
 import Data.Text.Lazy (Text)
 
-import System.FilePath (replaceDirectory, replaceExtension, (</>), )
+import System.FilePath (takeBaseName, (</>), (<.>))
 
 import qualified Reader (run)
 import QTree (QTree, toText, explicitZeros)
@@ -29,15 +29,21 @@ translateMtx mtx =
 prependProgram :: Text -> Text -> Text -> Text
 prependProgram varName matrix code = ""+|varName|+" = "+|matrix|+"\n"+|code|+""
 
-mkDstPath :: FilePath -> FilePath -> FilePath
-mkDstPath fp dst = flip replaceExtension "t" $ replaceDirectory fp dst
+mkDstPath :: FilePath -> FilePath -> FilePath -> FilePath
+mkDstPath mtxFp mainFp dst =
+    let mtxName = takeBaseName mtxFp
+        testFunName = takeBaseName mainFp
+
+        resultName = ""+|mtxName|+"_"+|testFunName|+""
+    in dst </> resultName <.> "hvml"
 
 hvlCode :: IO Text
 hvlCode = TIO.readFile hvlLibPath
 
-processMtx :: FilePath -> (FilePath, FilePath) -> IO FilePath
-processMtx dstPath (src1, src2) = do
-    mainCode <- hvlCode
+processMtx :: FilePath -> FilePath -> (FilePath, FilePath) -> IO FilePath
+processMtx mainPath dstPath (src1, src2) = do
+    libCode <- hvlCode
+    mainCode <- TIO.readFile mainPath
 
     mtx1 <- Reader.run src1
     mtx2 <- Reader.run src2
@@ -45,10 +51,11 @@ processMtx dstPath (src1, src2) = do
     let mtx1Text = translateMtx mtx1
     let mtx2Text = translateMtx mtx2
 
-    let code' = prependProgram matrix1Name mtx1Text
-                $ prependProgram matrix2Name mtx2Text mainCode
+    let code' = prependProgram "main" mainCode
+                $ prependProgram matrix1Name mtx1Text
+                $ prependProgram matrix2Name mtx2Text libCode
 
-    let dstPath' = mkDstPath src1 dstPath
+    let dstPath' = mkDstPath src1 mainPath dstPath
 
     TIO.writeFile dstPath' code'
 
@@ -56,6 +63,12 @@ processMtx dstPath (src1, src2) = do
 
 run :: FilePath -> IO [FilePath]
 run dst = do
-    srcPaths' <- Path.mtxPaths
+    mtxPaths <- Path.mtxPaths
+    mains <- Path.mains
 
-    mapM (processMtx dst) srcPaths'
+    print mains
+
+    sequence $
+        [ processMtx mainPath dst mtxPairPath
+          | mainPath <- mains, mtxPairPath <- mtxPaths ]
+

@@ -50,7 +50,3 @@ mapValueWith = @ f @ val @ tree (mapWithValue (flip f) tree val)
     }
 
 (add left right) = (+ left right)
-
-(ignore tree) = 1
-
-main = (ignore (map2 add matrix1 matrix2))

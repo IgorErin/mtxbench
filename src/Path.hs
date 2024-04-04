@@ -1,4 +1,4 @@
-module Path (mkDstPath, mtxPaths) where
+module Path (mkDstPath, mtxPaths, mains) where
 
 import System.FilePath (replaceExtension, replaceDirectory)
 import Test.Tasty.Golden (findByExtension)
@@ -14,3 +14,6 @@ mtxPaths = do
     let mtx2 = (++ "2") <$> mtx
 
     return $ zip mtx mtx2
+
+mains :: IO [FilePath]
+mains = findByExtension [".main"] "hvl"
