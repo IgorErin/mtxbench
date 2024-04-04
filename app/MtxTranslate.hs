@@ -61,12 +61,22 @@ processMtx mainPath dstPath (src1, src2) = do
 
     return dstPath'
 
+newLine :: IO ()
+newLine = putChar '\n'
+
 run :: FilePath -> IO [FilePath]
 run dst = do
     mtxPaths <- Path.mtxPaths
+
+    putStrLn "Matrices:"
+    mapM_ print mtxPaths
+    newLine
+
     mains <- Path.mains
 
-    print mains
+    putStrLn "Functions:"
+    mapM_ print mains
+    newLine
 
     sequence $
         [ processMtx mainPath dst mtxPairPath
