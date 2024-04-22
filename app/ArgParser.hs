@@ -13,7 +13,7 @@ import Options.Applicative
       progDesc,
       execParser )
 
-data Action = Convert | Translate
+data Action = Convert | Translate | Bench
 
 data Input = Input { fl :: Action, srcPath:: FilePath, dstPath :: FilePath }
 

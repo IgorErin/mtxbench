@@ -1,6 +1,8 @@
-module Hvml (run) where
+module Hvmc (run) where
 
-import qualified MtxTranslate as MT (run)
+-- TODO duplication with Hvml
+
+import qualified Hvml
 
 import Path (mkDstPath)
 
@@ -9,24 +11,24 @@ import System.IO (openFile, Handle, IOMode (WriteMode))
 
 import UnliftIO.Temporary (withSystemTempDirectory)
 
-runHvmlCompile :: FilePath -> Handle -> IO ()
-runHvmlCompile srcFile destHandle =
+runHvmcCompile :: FilePath -> Handle -> IO ()
+runHvmcCompile srcFile destHandle =
     runProcess_ $
     setStdout (useHandleClose destHandle) $
-    proc "hvml" [ "compile", srcFile ]
+    proc "hvmc" [ "compile", srcFile ]
 
 runFile :: FilePath -> FilePath -> IO FilePath
 runFile dstFolder srcFile = do
-    let destFile = mkDstPath srcFile "hvmc" dstFolder
+    let destFile = mkDstPath srcFile "bench" dstFolder
     destHanle <- openFile destFile WriteMode
 
-    runHvmlCompile srcFile destHanle
+    runHvmcCompile srcFile destHanle
 
     return destFile
 
 run :: FilePath -> FilePath -> IO [FilePath]
 run srcFolder dstFolder = do
     withSystemTempDirectory "temp" $ \fp -> do
-        src <- MT.run srcFolder fp
+        src <- Hvml.run srcFolder fp
 
         mapM (runFile dstFolder) src

@@ -53,6 +53,7 @@ executable mtxbench-exe
   main-is: Main.hs
   other-modules:
       ArgParser
+      Hvmc
       Hvml
       MtxTranslate
       Paths_mtxbench

@@ -3,6 +3,9 @@ module Main (main) where
 import ArgParser as Args (Input(..), Action(..), run)
 import MtxTranslate as MT (run)
 import Hvml (run)
+import Hvmc (run)
+
+
 
 main :: IO ()
 main = do
@@ -17,6 +20,12 @@ main = do
 
             return ()
         Translate -> do
-            Hvml.run src dst
+            _ <- Hvml.run src dst
 
             return ()
+        Bench -> do
+            files <- Hvmc.run src dst
+
+            -- run benchs
+
+            return undefined
