@@ -31,9 +31,9 @@ mkDstPath fp ext dst =
     flip replaceExtension ext $
     replaceDirectory fp dst
 
-mtxPaths :: IO [(FilePath, FilePath)]
-mtxPaths = do
-    allMtx <- findByExtension [".mtx"] "dataset"
+mtxPaths :: FilePath ->  IO [(FilePath, FilePath)]
+mtxPaths fp = do
+    allMtx <- findByExtension [".mtx"] fp
     onMtx <- availableMtx
 
     let mtx = fnFilter allMtx onMtx

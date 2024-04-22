@@ -64,9 +64,9 @@ processMtx mainPath dstPath (src1, src2) = do
 newLine :: IO ()
 newLine = putChar '\n'
 
-run :: FilePath -> IO [FilePath]
-run dst = do
-    mtxPaths <- Path.mtxPaths
+run :: FilePath -> FilePath -> IO [FilePath]
+run src dst = do
+    mtxPaths <- Path.mtxPaths src
 
     putStrLn "Matrices:"
     mapM_ print mtxPaths

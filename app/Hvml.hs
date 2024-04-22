@@ -22,9 +22,9 @@ runFile dstFolder srcFile = do
 
     runHvmlCompile srcFile destHanle
 
-run :: FilePath -> IO ()
-run dstFolder = do
-    withSystemTempDirectory "temp" $ (\fp -> do
-        src <- MT.run fp
+run :: FilePath -> FilePath -> IO ()
+run srcFolder dstFolder = do
+    withSystemTempDirectory "temp" $ \fp -> do
+        src <- MT.run srcFolder fp
 
-        mapM_ (runFile dstFolder) src )
+        mapM_ (runFile dstFolder) src

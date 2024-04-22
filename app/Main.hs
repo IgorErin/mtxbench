@@ -1,6 +1,6 @@
 module Main (main) where
 
-import ArgParser as Args (Input(..), run)
+import ArgParser as Args (Input(..), Action(..), run)
 import MtxTranslate as MT (run)
 import Hvml (run)
 
@@ -8,12 +8,15 @@ main :: IO ()
 main = do
     args <- Args.run
 
-    case args of
-        ConvertMatrix { dstPath } -> do
-            _ <- MT.run dstPath
+    let src = srcPath args
+    let dst = dstPath args
+
+    case fl args of
+        Convert -> do
+            _ <- MT.run src dst
 
             return ()
-        TranslateToHvmc { dstPath } -> do
-            Hvml.run dstPath
+        Translate -> do
+            Hvml.run src dst
 
             return ()

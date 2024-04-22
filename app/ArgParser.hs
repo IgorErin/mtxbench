@@ -1,23 +1,39 @@
-module ArgParser (Input(..), run) where
+module ArgParser (Input(..), Action(..), run) where
 
 import Options.Applicative
+    ( Parser,
+      ParserInfo,
+      strOption,
+      flag,
+      long,
+      short,
+      help,
+      info,
+      fullDesc,
+      progDesc,
+      execParser )
 
-data Input =
-    ConvertMatrix { dstPath :: FilePath }
-    | TranslateToHvmc { dstPath :: FilePath }
+data Action = Convert | Translate
 
-convertParser :: Parser Input
-convertParser = ConvertMatrix
-    <$> strOption
-        (long "lpath"
-        <> short 'l'
+data Input = Input { fl :: Action, srcPath:: FilePath, dstPath :: FilePath }
+
+inputParser :: Parser Input
+inputParser = Input
+    <$> flag Convert Translate
+        (long "trans"
+        <> short 't'
+        <> help "Enable verbose mode" )
+    <*> strOption
+        (long "srcPath"
+        <> short 's'
+        <> help "Destination path")
+    <*> strOption
+        (long "dstPath"
+        <> short 'd'
         <> help "Destination path")
 
-hvmcParser :: Parser Input
-hvmcParser = TranslateToHvmc <$> strOption (long "cpath" <> short 'c')
-
 parser :: Parser Input
-parser = convertParser <|> hvmcParser
+parser = inputParser
 
 parserInfo :: ParserInfo Input
 parserInfo = info parser
