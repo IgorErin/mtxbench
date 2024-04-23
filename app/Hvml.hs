@@ -18,6 +18,8 @@ runHvmlCompile srcFile destHandle =
 
 runFile :: FilePath -> FilePath -> IO FilePath
 runFile dstFolder srcFile = do
+    putStrLn $ "hvml run: " ++ srcFile
+
     let destFile = mkDstPath srcFile "hvmc" dstFolder
     destHanle <- openFile destFile WriteMode
 

@@ -11,7 +11,7 @@ run :: Matrix a -> QTree (Maybe ())
 run (PatternMatrix (rowCount, colCount) _ _ values') =
     let mtx = Mtx { linesCount = rowCount, columnCount = colCount, values = values' }
     in toQuadTreeFromMtxFormat mtx
-run _ = error "convert unsupported yet"
+run _ = error "Only pattern matrix. It not pattern"
 
 type Entry = [(Int32, Int32)]
 
