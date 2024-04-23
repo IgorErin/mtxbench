@@ -4,7 +4,7 @@ import qualified Path (mtxPaths, mains)
 
 import Fmt ((+|), (|+))
 
-import qualified Data.Text.Lazy.IO as TIO (writeFile, readFile)
+import qualified Data.Text.Lazy.IO as TIO (appendFile, readFile)
 import Data.Text.Lazy (Text)
 
 import System.FilePath (takeBaseName, (</>), (<.>))
@@ -26,9 +26,6 @@ translateMtx mtx =
     let expMtx = explicitZeros 0 mtx
     in toText expMtx
 
-prependProgram :: Text -> Text -> Text -> Text
-prependProgram varName matrix code = ""+|varName|+" = "+|matrix|+"\n"+|code|+""
-
 mkDstPath :: FilePath -> FilePath -> FilePath -> FilePath
 mkDstPath mtxFp mainFp dst =
     let mtxName = takeBaseName mtxFp
@@ -42,22 +39,29 @@ hvlCode = TIO.readFile hvlLibPath
 
 processMtx :: FilePath -> FilePath -> (FilePath, FilePath) -> IO FilePath
 processMtx mainPath dstPath (src1, src2) = do
-    libCode <- hvlCode
-    mainCode <- TIO.readFile mainPath
-
-    mtx1 <- Reader.run src1
-    mtx2 <- Reader.run src2
-
-    let mtx1Text = translateMtx mtx1
-    let mtx2Text = translateMtx mtx2
-
-    let code' = prependProgram "main" mainCode
-                $ prependProgram matrix1Name mtx1Text
-                $ prependProgram matrix2Name mtx2Text libCode
-
     let dstPath' = mkDstPath src1 mainPath dstPath
 
-    TIO.writeFile dstPath' code'
+    libCode <- hvlCode
+    TIO.appendFile dstPath' libCode
+
+    mainCode <- TIO.readFile mainPath
+    TIO.appendFile dstPath' mainCode
+
+    let addAssign :: Text -> Text -> IO ()
+        addAssign mtx name = do
+            TIO.appendFile dstPath' $ ""+|name|+" = "
+            TIO.appendFile dstPath'   mtx
+            TIO.appendFile dstPath' "\n\n"
+
+            return ()
+
+    mtx1 <- Reader.run src1
+    let mtx1Text = translateMtx mtx1
+    addAssign mtx1Text matrix1Name
+
+    mtx2 <- Reader.run src2
+    let mtx2Text = translateMtx mtx2
+    addAssign mtx2Text matrix2Name
 
     return dstPath'
 
@@ -81,4 +85,3 @@ run src dst = do
     sequence $
         [ processMtx mainPath dst mtxPairPath
           | mainPath <- mains, mtxPairPath <- mtxPaths ]
-
