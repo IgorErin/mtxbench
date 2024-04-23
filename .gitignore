@@ -24,3 +24,5 @@ cabal.project.local~
 
 # data sets and other
 /dataset
+/bench
+.hvm

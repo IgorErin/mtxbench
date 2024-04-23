@@ -53,6 +53,7 @@ executable mtxbench-exe
   main-is: Main.hs
   other-modules:
       ArgParser
+      Bench
       Hvmc
       Hvml
       MtxTranslate
@@ -64,6 +65,7 @@ executable mtxbench-exe
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N -XOverloadedStrings -XNamedFieldPuns
   build-depends:
       base >=4.7 && <5
+    , criterion
     , filepath
     , fmt
     , mtxbench
@@ -93,21 +95,4 @@ test-suite mtxbench-test
     , tasty
     , tasty-golden
     , text
-  default-language: Haskell2010
-
-benchmark testing-bench
-  type: exitcode-stdio-1.0
-  main-is: Main.hs
-  other-modules:
-      Paths_mtxbench
-  autogen-modules:
-      Paths_mtxbench
-  hs-source-dirs:
-      bench
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
-  build-depends:
-      base >=4.7 && <5
-    , criterion
-    , filepath
-    , mtxbench
   default-language: Haskell2010

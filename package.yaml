@@ -33,15 +33,6 @@ ghc-options:
 - -Wpartial-fields
 - -Wredundant-constraints
 
-benchmarks:
-  testing-bench:
-    source-dirs: bench
-    main: Main.hs
-    dependencies:
-      - criterion
-      - mtxbench
-      - filepath
-
 library:
   source-dirs: src
   ghc-options:
@@ -76,6 +67,7 @@ executables:
     - filepath
     - typed-process
     - unliftio
+    - criterion
 
 tests:
   mtxbench-test:

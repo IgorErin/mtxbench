@@ -1,31 +1,35 @@
 module Main (main) where
 
-import ArgParser as Args (Input(..), Action(..), run)
+import ArgParser as Args (Result(..), Action(..), run)
+
 import MtxTranslate as MT (run)
 import Hvml (run)
 import Hvmc (run)
-
-
+import Bench (runMany)
 
 main :: IO ()
 main = do
     args <- Args.run
 
-    let src = srcPath args
-    let dst = dstPath args
+    let s = src args
+    let d = dst args
 
-    case fl args of
+    case action args of
         Convert -> do
-            _ <- MT.run src dst
+            _ <- MT.run s d
 
             return ()
         Translate -> do
-            _ <- Hvml.run src dst
+            _ <- Hvml.run s d
+
+            return ()
+        Compile -> do
+            _ <- Hvmc.run s d
 
             return ()
         Bench -> do
-            files <- Hvmc.run src dst
+            paths <- Hvmc.run s d
 
-            -- run benchs
+            runMany paths
+        Unknown -> putStrLn "Unkown option"
 
-            return undefined

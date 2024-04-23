@@ -7,22 +7,18 @@ import qualified Hvml
 import Path (mkDstPath)
 
 import System.Process.Typed
-import System.IO (openFile, Handle, IOMode (WriteMode))
 
 import UnliftIO.Temporary (withSystemTempDirectory)
 
-runHvmcCompile :: FilePath -> Handle -> IO ()
-runHvmcCompile srcFile destHandle =
-    runProcess_ $
-    setStdout (useHandleClose destHandle) $
-    proc "hvmc" [ "compile", srcFile ]
+runHvmcCompile :: FilePath -> FilePath -> IO ()
+runHvmcCompile srcFile destPath =
+    runProcess_ $ proc "hvmc" [ "compile", "--output", destPath, srcFile ]
 
 runFile :: FilePath -> FilePath -> IO FilePath
 runFile dstFolder srcFile = do
     let destFile = mkDstPath srcFile "bench" dstFolder
-    destHanle <- openFile destFile WriteMode
 
-    runHvmcCompile srcFile destHanle
+    runHvmcCompile srcFile destFile
 
     return destFile
 
