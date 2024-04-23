@@ -4,7 +4,8 @@ import qualified MtxTranslate as MT (run)
 
 import Path (mkDstPath)
 
-import System.Process.Typed 
+import System.Process.Typed
+    ( runProcess_, proc, setStdout, useHandleClose )
 import System.IO (openFile, Handle, IOMode (WriteMode))
 
 import UnliftIO.Temporary (withSystemTempDirectory)
