@@ -1,19 +1,21 @@
 module Convert (run) where
 
-import Helpers ( takeFst, takeSnd, takeThrd, roundUp )
+import Helpers (roundUp)
 import QTree as Q (QTree, leaf, node, mergeQTree)
-import Data.Matrix.MatrixMarket (Matrix(IntMatrix))
+import Data.Matrix.MatrixMarket (Matrix(PatternMatrix))
 import Data.Int
 
-data MtxSparseFormat = Mtx {values :: [(Int32, Int32, Int)], linesCount :: Int, columnCount :: Int} deriving (Show)
+data MtxSparseFormat = Mtx {values :: [(Int32, Int32)], linesCount :: Int, columnCount :: Int} deriving (Show)
 
-run :: Matrix a -> QTree (Maybe Int)
-run (IntMatrix (rowCount, colCount) _ _ values') =
+run :: Matrix a -> QTree (Maybe ())
+run (PatternMatrix (rowCount, colCount) _ _ values') =
     let mtx = Mtx { linesCount = rowCount, columnCount = colCount, values = values' }
     in toQuadTreeFromMtxFormat mtx
 run _ = error "convert unsupported yet"
 
-type Entry = [(Int32, Int32, Int)]
+type Entry = [(Int32, Int32)]
+
+-- PatternMatrix (Int, Int) Int Structure [(Int32, Int32)]
 
 mtxFormatPartition :: MtxSparseFormat -> (MtxSparseFormat , MtxSparseFormat, MtxSparseFormat, MtxSparseFormat)
 mtxFormatPartition mtx@(Mtx values rows columns)
@@ -25,11 +27,11 @@ mtxFormatPartition mtx@(Mtx values rows columns)
 
             inner :: Entry -> Entry -> Entry -> Entry -> Entry -> (Entry, Entry, Entry, Entry)
             inner [] nw' ne' sw' se' = (nw', ne', sw', se')
-            inner ((i, j, value) : tl) nw' ne' sw' se'
-                | i <= halfRows && j <= halfColumns = inner tl ((i, j, value) : nw') ne' sw' se'
-                | i <= halfRows && j > halfColumns = inner tl nw' ((i, j - halfColumns, value) : ne') sw' se'
-                | i > halfRows && j <= halfColumns = inner tl nw' ne' ((i - halfRows, j, value) : sw') se'
-                | otherwise = inner tl nw' ne' sw' ((i - halfRows, j - halfRows, value) : se')
+            inner ((i, j) : tl) nw' ne' sw' se'
+                | i <= halfRows && j <= halfColumns = inner tl ((i, j) : nw') ne' sw' se'
+                | i <= halfRows && j > halfColumns = inner tl nw' ((i, j - halfColumns) : ne') sw' se'
+                | i > halfRows && j <= halfColumns = inner tl nw' ne' ((i - halfRows, j) : sw') se'
+                | otherwise = inner tl nw' ne' sw' ((i - halfRows, j - halfRows) : se')
 
             (nw, ne, sw, se) = inner values [] [] [] []
             -- cirnge fromIntegral
@@ -43,10 +45,10 @@ mtxFormatPartition mtx@(Mtx values rows columns)
         in
         (mnw, mne, msw, mse)
 
-toQuadTreeFromMtxFormat ::  MtxSparseFormat -> QTree (Maybe Int)
+toQuadTreeFromMtxFormat ::  MtxSparseFormat -> QTree (Maybe ())
 toQuadTreeFromMtxFormat (Mtx values rows columns)
     | rows == 0 && columns == 0 = leaf Nothing
-    | rows == 1 && columns == 1 && not (null values) = leaf (Just $ takeThrd $ head values)
+    | rows == 1 && columns == 1 && not (null values) = leaf $ Just ()
     | otherwise = inner $ Mtx values powerSize powerSize
     where
         powerSize = 2 ^ roundUp (logBase 2 (toEnum $ max rows columns))
@@ -56,9 +58,9 @@ toQuadTreeFromMtxFormat (Mtx values rows columns)
             | rows' == 1
                 && columns' == 1
                 && length values' == 1
-                && takeFst (head values') <= fromIntegral maxRowIndex
-                && takeSnd (head values') <= fromIntegral maxColumnIndex =
-                leaf (Just $ takeThrd $ head values')
+                && fst (head values') <= fromIntegral maxRowIndex
+                && snd (head values') <= fromIntegral maxColumnIndex =
+                leaf (Just ())
             | null values' = leaf Nothing
             | otherwise =  mergeQTree $ node (inner nw) (inner ne) (inner sw) (inner se)
             where

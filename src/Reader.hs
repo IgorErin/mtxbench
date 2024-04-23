@@ -7,4 +7,5 @@ import QTree (QTree)
 run :: FilePath -> IO (QTree (Maybe Int))
 run fp = do
     mtx <- readMatrix fp
-    return $ Convert.run mtx
+
+    return $ (const 1 <$>) <$> Convert.run mtx

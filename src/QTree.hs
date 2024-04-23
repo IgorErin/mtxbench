@@ -47,7 +47,7 @@ toText = fmt . toBuilder
 
 data Info a = Try a | No
 
-mergeQTree :: QTree (Maybe Int) -> QTree (Maybe Int)
+mergeQTree :: QTree (Maybe ()) -> QTree (Maybe ())
 mergeQTree = run
     where
     info :: Eq a => QTree a -> Info a
