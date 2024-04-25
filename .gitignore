@@ -26,4 +26,3 @@ cabal.project.local~
 /dataset
 /bench
 .hvm
-/config
