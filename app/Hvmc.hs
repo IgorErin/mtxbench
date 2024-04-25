@@ -18,7 +18,7 @@ runHvmcCompile srcFile destPath =
 runFile :: FilePath -> FilePath -> IO FilePath
 runFile dstFolder srcFile = do
     putStrLn $ "hvmc start with: " ++ srcFile
-    
+
     let destFile = mkDstPath srcFile "bench" dstFolder
 
     runHvmcCompile srcFile destFile
@@ -27,7 +27,7 @@ runFile dstFolder srcFile = do
 
 run :: FilePath -> FilePath -> IO [FilePath]
 run srcFolder dstFolder = do
-    withSystemTempDirectory "temp" $ \fp -> do
+    withSystemTempDirectory "temp_hvmc" $ \fp -> do
         src <- Hvml.run srcFolder fp
 
         mapM (runFile dstFolder) src

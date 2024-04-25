@@ -29,7 +29,7 @@ runFile dstFolder srcFile = do
 
 run :: FilePath -> FilePath -> IO [FilePath]
 run srcFolder dstFolder = do
-    withSystemTempDirectory "temp" $ \fp -> do
+    withSystemTempDirectory "temp_hvml" $ \fp -> do
         src <- MT.run srcFolder fp
 
         mapM (runFile dstFolder) src

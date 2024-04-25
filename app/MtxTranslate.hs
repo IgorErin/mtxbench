@@ -43,9 +43,11 @@ processMtx mainPath dstPath (src1, src2) = do
 
     libCode <- hvlCode
     TIO.appendFile dstPath' libCode
+    TIO.appendFile dstPath' "\n"
 
     mainCode <- TIO.readFile mainPath
     TIO.appendFile dstPath' mainCode
+    TIO.appendFile dstPath' "\n\n"
 
     let addAssign :: Text -> Text -> IO ()
         addAssign mtx name = do

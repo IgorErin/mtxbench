@@ -1,4 +1,7 @@
 # list of matrices to be tested
 
-shl_200
-aricraft
+# shl_200
+# aircraft
+# wing
+# abb313
+mycielskian2
